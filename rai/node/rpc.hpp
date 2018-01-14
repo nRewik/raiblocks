@@ -161,6 +161,7 @@ public:
 	void unchecked_keys ();
 	void validate_account_number ();
 	void version ();
+	void wallet_list ();
 	void wallet_add ();
 	void wallet_balance_total ();
 	void wallet_balances ();

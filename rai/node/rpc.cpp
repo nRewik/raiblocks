@@ -3137,6 +3137,36 @@ void rai::rpc_handler::validate_account_number ()
 	response (response_l);
 }
 
+void rai::rpc_handler::wallet_list ()
+{
+	if (rpc.config.enable_control)
+	{
+		boost::property_tree::ptree wallets_object;
+		for (auto wallet: node.wallets.items)
+		{
+			boost::property_tree::ptree accounts;
+			rai::transaction transaction (wallet.second->store.environment, nullptr, false);
+			for (auto j(wallet.second->store.begin (transaction)), m (wallet.second->store.end ()); j != m; ++j)
+			{
+				boost::property_tree::ptree account;
+				account.put("", rai::uint256_union (j->first.uint256 ()).to_account ());
+				accounts.push_back(std::make_pair("", account));
+			}
+			boost::property_tree::ptree wallet_object;
+			wallet_object.put("wallet", boost::str (boost::format ("%1%") % wallet.first.to_string ()));
+			wallet_object.add_child("accounts", accounts);
+			wallets_object.push_back(std::make_pair("", wallet_object));
+		}
+		boost::property_tree::ptree response_l;
+		response_l.add_child("wallets", wallets_object);
+		response (response_l);
+	}
+	else
+	{
+		error_response (response, "RPC control is disabled");
+	}
+}
+
 void rai::rpc_handler::wallet_add ()
 {
 	if (rpc.config.enable_control)
@@ -4472,6 +4502,10 @@ void rai::rpc_handler::process_request ()
 		else if (action == "version")
 		{
 			version ();
+		}
+		else if (action == "wallet_list")
+		{
+			wallet_list ();
 		}
 		else if (action == "wallet_add")
 		{
